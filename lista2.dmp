@@ -1,0 +1,34 @@
+--01.Podaj kody, imiona i nazwiska wszystkich osób, które chodziły
+--  na dowolne zajęcia z Algorytmów i struktur danych, a w jakimś semestrze
+--  późniejszym (o większym numerze) chodziły na zajęcia z Matematyki dyskretnej.
+--  Za AiSD oraz MD uznaj wszystkie przedmioty, których nazwa zaczyna się od podanych nazw.
+--  Zapisz to zapytanie używając operatora IN z podzapytaniem.
+/*SELECT DISTINCT u.kod_uz, imie, nazwisko FROM uzytkownik u
+  JOIN wybor USING(kod_uz)
+  JOIN grupa USING(kod_grupy)
+  JOIN przedmiot_semestr psaisd USING(kod_przed_sem)
+  JOIN przedmiot paisd USING(kod_przed)
+WHERE paisd.nazwa LIKE 'Algorytmy i struktury danych%' AND u.kod_uz IN(
+  SELECT w.kod_uz FROM wybor w
+    JOIN grupa USING(kod_grupy)
+    JOIN przedmiot_semestr psmd USING(kod_przed_sem)
+    JOIN przedmiot pmd USING(kod_przed)
+  WHERE pmd.nazwa LIKE 'Matematyka dyskretna%' AND psaisd.semestr_id < psmd.semestr_id);  --DONE*/
+
+--02.Zapisz zapytanie pierwsze używając operatora EXISTS z podzapytaniem.
+/*SELECT DISTINCT u.kod_uz, imie, nazwisko FROM uzytkownik u
+  JOIN wybor USING(kod_uz)
+  JOIN grupa USING(kod_grupy)
+  JOIN przedmiot_semestr psaisd USING(kod_przed_sem)
+  JOIN przedmiot paisd USING(kod_przed)
+WHERE paisd.nazwa LIKE 'Algorytmy i struktury danych%' AND EXISTS(
+  SELECT * FROM wybor w
+  JOIN grupa USING(kod_grupy)
+  JOIN przedmiot_semestr psmd USING(kod_przed_sem)
+  JOIN przedmiot pmd USING(kod_przed)
+  WHERE pmd.nazwa LIKE 'Matematyka dyskretna%' AND psaisd.semestr_id < psmd.semestr_id
+  AND u.kod_uz = w.kod_uz); --DONE*/
+
+--03.Podaj kody, imiona i nazwiska osób, które prowadziły jakiś wykład,
+--   ale nigdy nie prowadziły żadnego seminarium (nie patrzymy,
+--   czy zajęcia były w tym samym semestrze). Pisząc zapytanie użyj operatora NOT EXISTS.

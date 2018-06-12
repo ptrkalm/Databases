@@ -1,0 +1,6 @@
+{ "open": { "database": "corp", "login": "app", "password": "qwerty"}}
+{ "remove": { "admin": 0, "passwd": "qwerty", "emp":2 } }
+{ "new": { "admin": 0, "passwd": "qwerty", "data":"dane emp2", "newpasswd":"qwerty", "emp1":1, "emp":2 } }
+{ "new": { "admin": 0, "passwd": "qwerty", "data":"dane emp3", "newpasswd":"qwerty", "emp1":1, "emp":3 } }
+{ "new": { "admin": 0, "passwd": "qwerty", "data":"dane emp4", "newpasswd":"qwerty", "emp1":1, "emp":4 } }
+{ "new": { "admin": 0, "passwd": "qwerty", "data":"dane emp5", "newpasswd":"qwerty", "emp1":4, "emp":5 } }

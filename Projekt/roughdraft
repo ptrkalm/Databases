@@ -1,0 +1,12 @@
+"""
+  CREATE USER app
+  """,
+  """
+  REVOKE CONNECT ON DATABASE corp FROM PUBLIC
+  """,
+  """
+  GRANT CONNECT ON DATABASE corp TO app
+  """,
+  """
+  GRANT INSERT, SELECT, UPDATE, DELETE ON employee TO app
+  """)

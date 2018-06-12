@@ -1,0 +1,152 @@
+--01.Podaj, uporządkowane alfabetycznie, nazwiska prowadzących
+--   ćwiczenia z Matematyki dyskretnej (M) w semestrze zimowym 2010/2011.
+/*SELECT nazwisko FROM uzytkownik
+  JOIN grupa USING(kod_uz)
+  JOIN przedmiot_semestr USING(kod_przed_sem)
+  JOIN przedmiot p USING(kod_przed)
+  JOIN semestr s USING(semestr_id)
+WHERE p.nazwa = 'Matematyka dyskretna (M)' AND s.nazwa LIKE '%zimowy 2010/2011'
+ORDER BY nazwisko; --DONE*/
+
+--02.Podaj imię i nazwisko osoby, która jako pierwsza zapisała
+--   się na wykład z Matematyki dyskretnej (M) w semestrze zimowym 2010/2011.
+/*SELECT imie, nazwisko FROM uzytkownik
+  JOIN wybor w USING(kod_uz)
+  JOIN grupa g USING(kod_grupy)
+  JOIN przedmiot_semestr USING(kod_przed_sem)
+  JOIN przedmiot p USING(kod_przed)
+  JOIN semestr s USING(semestr_id)
+WHERE p.nazwa ='Matematyka dyskretna (M)' AND s.nazwa LIKE '%zimowy 2010/2011' AND g.rodzaj_zajec = 'w'
+ORDER BY w.data LIMIT(1); --DONE*/
+
+--03.Przez ile dni studenci zapisywali się na wykład?
+--   z Matematyki dyskretnej (M) w semestrze zimowym 2010/2011.
+/*WITH min AS (
+  SELECT * FROM uzytkownik
+    JOIN wybor w USING(kod_uz)
+    JOIN grupa g USING(kod_grupy)
+    JOIN przedmiot_semestr USING(kod_przed_sem)
+    JOIN przedmiot p USING(kod_przed)
+    JOIN semestr s USING(semestr_id)
+  WHERE p.nazwa ='Matematyka dyskretna (M)' AND s.nazwa LIKE '%zimowy 2010/2011' AND g.rodzaj_zajec = 'w'
+  ORDER BY w.data ASC LIMIT(1)),
+    max AS (
+  SELECT * FROM uzytkownik
+    JOIN wybor w USING(kod_uz)
+    JOIN grupa g USING(kod_grupy)
+    JOIN przedmiot_semestr USING(kod_przed_sem)
+    JOIN przedmiot p USING(kod_przed)
+    JOIN semestr s USING(semestr_id)
+  WHERE p.nazwa ='Matematyka dyskretna (M)' AND s.nazwa LIKE '%zimowy 2010/2011' AND g.rodzaj_zajec = 'w'
+  ORDER BY w.data DESC LIMIT(1))
+SELECT date_part('days', max.data - min.data) FROM max, min; --DONE*/
+
+--04.Do ilu przedmiotów obowiązkowych jest repetytorium?
+/*SELECT COUNT(*) FROM przedmiot p
+  JOIN przedmiot_semestr USING(kod_przed)
+  JOIN grupa g USING(kod_przed_sem)
+WHERE p.rodzaj = 'o' AND g.rodzaj_zajec = 'e'; --DONE*/
+
+--05.Ile osób prowadziło ćwiczenia do przedmiotów obowiązkowych w semestrach zimowych?
+--   Do odpowiedzi wliczamy sztucznych użytkowników (o “dziwnych” nazwiskach)?
+/*WITH A AS(
+  SELECT DISTINCT * FROM uzytkownik
+    JOIN grupa g USING(kod_uz)
+    JOIN przedmiot_semestr USING(kod_przed_sem)
+    JOIN przedmiot p USING(kod_przed)
+    JOIN semestr s USING(semestr_id)
+  WHERE g.rodzaj_zajec = 'c' AND p.rodzaj = 'o' AND s.nazwa LIKE '%zimowy%')
+SELECT COUNT(*) FROM A; --DONE*/
+
+--06.Podaj nazwy wszystkich przedmiotów, w kolejności alfabetycznej,
+--   do których zajęcia prowadził użytkownik o nazwisku Urban.
+/*SELECT DISTINCT p.nazwa FROM przedmiot p
+  JOIN przedmiot_semestr USING(kod_przed)
+  JOIN grupa USING(kod_przed_sem)
+  JOIN uzytkownik u USING(kod_uz)
+WHERE u.nazwisko = 'Urban'; -- DONE*/
+
+--07.Ile jest w bazie osób o nazwisku Kabacki z dowolnym numerem na końcu?
+/*SELECT COUNT (*) FROM uzytkownik
+WHERE nazwisko LIKE 'Kabacki%'; --DONE*/
+
+--08.Ile osób co najmniej dwukrotnie się zapisało na Algorytmy i struktury danych (M)
+--   w różnych semestrach (na dowolne zajęcia).?
+/*WITH A AS(
+SELECT DISTINCT nazwisko FROM uzytkownik u
+  JOIN wybor w1 ON(u.kod_uz = w1.kod_uz)
+  JOIN grupa g1 ON(w1.kod_grupy = g1.kod_grupy)
+  JOIN przedmiot_semestr ps1 ON(g1.kod_przed_sem = ps1.kod_przed_sem)
+  JOIN przedmiot p1 ON(ps1.kod_przed = p1.kod_przed)
+  JOIN wybor w2 ON(u.kod_uz = w2.kod_uz)
+  JOIN grupa g2 ON(w2.kod_grupy = g2.kod_grupy)
+  JOIN przedmiot_semestr ps2 ON(g2.kod_przed_sem = ps2.kod_przed_sem)
+  JOIN przedmiot p2 ON(ps2.kod_przed = p2.kod_przed)
+WHERE p1.nazwa = p2.nazwa AND p1.nazwa = 'Algorytmy i struktury danych (M)'
+  AND ps1.kod_przed_sem <> ps2.kod_przed_sem
+) SELECT COUNT(*) FROM A; --DONE;*/
+
+--09.W którym semestrze (podaj numer) było najmniej przedmiotów obowiązkowych?
+--   (rozważ tylko semestry, gdy był co najmniej jeden).
+--TODO
+
+--10.Ile grup ćwiczeniowych z Logiki dla informatyków było w semestrze zimowym 2010/2011?
+/*SELECT COUNT(*) FROM grupa g
+  JOIN przedmiot_semestr USING(kod_przed_sem)
+  JOIN przedmiot p USING (kod_przed)
+  JOIN semestr s using(semestr_id)
+WHERE (g.rodzaj_zajec = 'c' OR g.rodzaj_zajec = 'C') AND s.nazwa LIKE '%zimowy 2010/2011'
+      AND p.nazwa = 'Logika dla informatyków'; --DONE*/
+
+--11.W którym semestrze (podaj numer) było najwięcej przedmiotów obowiązkowych?
+--TODO
+
+--12.Ile przedmiotów ma w nazwie dopisek '(ang.)'?
+/*SELECT COUNT(*) FROM przedmiot
+WHERE przedmiot.nazwa LIKE '%(ang.)%'; --DONE*/
+
+--13.W jakim okresie (od dnia do dnia) studenci zapisywali się na przedmioty w semestrze
+--   zimowym 2009/2010? Podaj odpowiedź w formacie rrrr-mm-dd,rrrr-mm-dd.
+/*WITH start AS(
+  SELECT * FROM wybor w
+    JOIN grupa USING(kod_grupy)
+    JOIN przedmiot_semestr USING(kod_przed_sem)
+    JOIN semestr USING(semestr_id)
+  WHERE semestr.nazwa LIKE '%zimowy 2009/2010'
+  ORDER BY w.data ASC LIMIT(1)
+),
+meta AS(
+  SELECT * FROM wybor w
+    JOIN grupa USING(kod_grupy)
+    JOIN przedmiot_semestr USING(kod_przed_sem)
+    JOIN semestr USING(semestr_id)
+  WHERE semestr.nazwa LIKE '%zimowy 2009/2010'
+  ORDER BY w.data DESC LIMIT(1)
+) SELECT start.data::date, meta.data::date FROM start, meta; --DONE*/
+
+--14.Ile przedmiotów typu kurs nie miało edycji w żadnym semestrze
+--   (nie występują w tabeli przedmiot_semestr)?
+/*WITH A AS(
+  (SELECT kod_przed FROM przedmiot WHERE rodzaj = 'k')
+  EXCEPT
+  (SELECT kod_przed FROM przedmiot_semestr)
+) SELECT COUNT(*) FROM A; --DONE*/
+
+--15.Ile grup ćwiczenio-pracowni prowadziła P. Kanarek?
+/*SELECT COUNT(*) FROM grupa g
+  JOIN uzytkownik u USING(kod_uz)
+WHERE g.rodzaj_zajec = 'r' AND u.nazwisko = 'Kanarek'; --DONE*/
+
+--16.Ile grup z Logiki dla informatyków prowadził W. Charatonik?
+/*SELECT COUNT(*) FROM grupa g
+  JOIN uzytkownik u USING(kod_uz)
+  JOIN przedmiot_semestr USING(kod_przed_sem)
+  JOIN przedmiot p USING(kod_przed)
+WHERE u.imie LIKE 'W%' AND u.nazwisko = 'Charatonik'
+  AND p.nazwa = 'Logika dla informatyków'; --DONE*/
+
+--17.Ile osób uczęszczało dwa razy na Bazy danych?
+--TODO
+
+--18.Ile osób zapisało sie na jakiś przedmiot w każdym z semestrów zapisanych w bazie?
+--TODO

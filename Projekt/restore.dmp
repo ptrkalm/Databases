@@ -1,0 +1,8 @@
+\c corp
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+CREATE USER app1;
+REASSIGN OWNED BY app to app1;
+DROP OWNED BY app;
+DROP USER app;
+DROP USER app1;
