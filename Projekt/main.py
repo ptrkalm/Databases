@@ -2,15 +2,28 @@ import psycopg2
 import sys
 import json
 import ast
+import re
+
+def printOK(data):
+    if (data is None):
+        print(json.dumps({"status": "OK"}))
+    else:
+        print(json.dumps({"status": "OK", "data": data}))
+    return
+
+def printERROR(debug):
+    print(json.dumps({"status": "ERROR", "debug": debug}))
+    return
 
 def openDatabase(login, password, database):
     conn = None
     try:
         conn = psycopg2.connect(host='localhost', dbname=database, user=login, password=password)
-        print("SUCCES: openDatabase")
+        printOK(None)
         return conn
     except:
-        print('openDatabase error')
+        printERROR("openDatabase - can't connect to database")
+        sys.exit()
 
 def buildDatabase(conn):
     commands = (
@@ -36,7 +49,6 @@ def buildDatabase(conn):
         cur.execute(command)
 
     cur.close()
-    print("SUCCES: buildDatabase")
 
 def buildRoot(conn, data, password, emp):
     command = """
@@ -46,7 +58,7 @@ def buildRoot(conn, data, password, emp):
     cur = conn.cursor()
     cur.execute(command, (emp, data, password))
     cur.close()
-    print("SUCCES: buildRoot")
+    printOK(None)
 
 def authentication(conn, admin, passwd):
     command = """
@@ -110,7 +122,7 @@ def addEmployee(conn, admin, passwd, data, newpasswd, emp1, emp):
         WHERE emp = %s;"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: addEmploye - failed authentication")
+        printERROR("addEmploye - failed authentication")
         return
 
     hasPrivilege = privilege(conn, emp1, admin)
@@ -121,12 +133,12 @@ def addEmployee(conn, admin, passwd, data, newpasswd, emp1, emp):
                 cur.execute(insertEmployee, (emp, data, newpasswd))
                 cur.execute(addAncestor, (0, 0, emp))
             except:
-                print("FAILURE: addEmploye - duplicated key")
+                printERROR("addEmploye - duplicated key")
                 conn.rollback()
                 cur.close()
                 return
         else:
-            print("FAILURE: addEmploye - admin without privelege")
+            printERROR("addEmploye - admin without privelege")
             cur.close()
             return
 
@@ -137,17 +149,17 @@ def addEmployee(conn, admin, passwd, data, newpasswd, emp1, emp):
             cur.execute(inheritAncestors, (emp1, emp))
             cur.execute(addAncestor, (depth, emp1, emp))
         except:
-            print("FAILURE: addEmploye - duplicated key")
+            printERROR("addEmploye - duplicated key")
             conn.rollback()
             cur.close()
             return
     else:
-        print("FAILURE: addEmploye - admin without privelege")
+        printERROR("addEmploye - admin without privelege")
         cur.close()
         return
 
     cur.close()
-    print("SUCCES: addEmployee")
+    printOK(None)
     return
 
 def removeEmployee(conn, admin, passwd, emp):
@@ -155,7 +167,7 @@ def removeEmployee(conn, admin, passwd, emp):
         DELETE FROM employee WHERE emp = %s OR ancestors[%s] = %s"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: addEmploye - failed authentication")
+        printERROR("removeEmployee - failed authentication")
         return
 
     hasPrivilege = privilege(conn, emp, admin)
@@ -164,7 +176,7 @@ def removeEmployee(conn, admin, passwd, emp):
         if (admin == 0):
             cur.execute(command, (0, 0))
         else:
-            print("FAILURE: removeEmploye - admin without privelege")
+            printERROR("removeEmployee - admin without privelege")
             cur.close()
             return
 
@@ -172,12 +184,12 @@ def removeEmployee(conn, admin, passwd, emp):
         depth = hasPrivilege
         cur.execute(command, (emp, depth, emp))
     else:
-        print("FAILURE: removeEmploye - admin without privelege")
+        printERROR("removeEmployee - admin without privelege")
         cur.close()
         return
 
     cur.close()
-    print("SUCCES: removeEmployee")
+    printOK(None)
     return
 
 def childEmployee(conn, admin, passwd, emp):
@@ -186,7 +198,7 @@ def childEmployee(conn, admin, passwd, emp):
         WHERE ancestors[%s] = %s AND array_length(ancestors, 1) = %s"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: childEmployee - failed authentication")
+        printERROR("childEmployee - failed authentication")
         return
 
     depth = calcDepth(conn, emp)
@@ -198,10 +210,9 @@ def childEmployee(conn, admin, passwd, emp):
         cur.execute(command, (depth, emp, depth+1))
 
     child = cur.fetchall()
-    print child;
 
     cur.close()
-    print("SUCCES: childEmployee")
+    printOK([int(num) for num in re.findall(r'\d+', str(child))])
     return
 
 def parentEmployee(conn, admin, passwd, emp):
@@ -213,7 +224,7 @@ def parentEmployee(conn, admin, passwd, emp):
         )"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: parentEmployee - failed authentication")
+        printERROR("parentEmployee - failed authentication")
         return
 
     depth = calcDepth(conn, emp)
@@ -225,10 +236,9 @@ def parentEmployee(conn, admin, passwd, emp):
         cur.execute(command, (depth-1, emp))
 
     parent = cur.fetchone()
-    print(parent)
 
     cur.close()
-    print("SUCCES: parentEmployee")
+    printOK(parent[0])
     return
 
 def ancestorsEmployee(conn, admin, passwd, emp):
@@ -237,15 +247,14 @@ def ancestorsEmployee(conn, admin, passwd, emp):
         WHERE emp = %s;"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: ancestorsEmployee - failed authentication")
+        printERROR("ancestorsEmployee - failed authentication")
         return
 
     cur = conn.cursor()
     cur.execute(command, (emp,))
     ancestors = cur.fetchone()
-    print ancestors
     cur.close()
-    print("SUCCES: ancestorsEmployee")
+    printOK(ancestors[0])
     return
 
 def descendantsEmployee(conn, admin, passwd, emp):
@@ -254,7 +263,7 @@ def descendantsEmployee(conn, admin, passwd, emp):
         WHERE ancestors[%s] = %s"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: descendantsEmployee - failed authentication")
+        printERROR("descendantsEmployee - failed authentication")
         return
 
     depth = calcDepth(conn, emp)
@@ -265,9 +274,8 @@ def descendantsEmployee(conn, admin, passwd, emp):
         cur.execute(command, (depth, emp))
 
     descendants = cur.fetchall()
-    print descendants
     cur.close()
-    print("SUCCES: descendantsEmployee")
+    printOK([int(num) for num in re.findall(r'\d+', str(descendants))])
     return
 
 def ancestorEmployee(conn, admin, passwd, emp1, emp2):
@@ -278,15 +286,14 @@ def ancestorEmployee(conn, admin, passwd, emp1, emp2):
             );"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: ancestorEmployee - failed authentication")
+        printERROR("ancestorEmployee - failed authentication")
         return
 
     cur = conn.cursor()
     cur.execute(command, (emp2, emp1))
     ancestor = cur.fetchone()
-    print(ancestor)
     cur.close()
-    print("SUCCES: ancestorEmployee")
+    printOK(str(ancestor[0]))
     return
 
 def readEmployee(conn, admin, passwd, emp):
@@ -295,7 +302,7 @@ def readEmployee(conn, admin, passwd, emp):
         WHERE emp = %s"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: readEmployee - failed authentication")
+        printERROR("readEmployee - failed authentication")
         return
 
     hasPrivilege = privilege(conn, emp, admin)
@@ -305,21 +312,20 @@ def readEmployee(conn, admin, passwd, emp):
         if (admin == 0):
             cur.execute(command, (0,))
         else:
-            print("FAILURE: readEmploye - admin without privelege")
+            printERROR("readEmploye - admin without privelege")
             cur.close()
             return
 
     elif (hasPrivilege):
         cur.execute(command, (emp,))
     else:
-        print("FAILURE: readEmploye - admin without privelege")
+        printERROR("readEmploye - admin without privelege")
         cur.close()
         return
 
     data = cur.fetchone()
-    print data
     cur.close()
-    print("SUCCES: readEmployee")
+    printOK(data[0])
     return
 
 def updateEmployee(conn, admin, passwd, emp, newdata):
@@ -328,7 +334,7 @@ def updateEmployee(conn, admin, passwd, emp, newdata):
         WHERE emp = %s;"""
 
     if(not authentication(conn, admin, passwd)):
-        print("FAILURE: updateEmployee - failed authentication")
+        printERROR("updateEmployee - failed authentication")
         return
 
     hasPrivilege = privilege(conn, emp, admin)
@@ -337,12 +343,11 @@ def updateEmployee(conn, admin, passwd, emp, newdata):
     if (hasPrivilege == -1 or hasPrivilege):
         cur.execute(command, (newdata, emp))
     else:
-        print("FAILURE: updateEmploye - admin without privelege")
+        printERROR("updateEmploye - admin without privelege")
         cur.close()
         return
 
     cur.close()
-    print("SUCCES: updateEmployee")
     return
 
 def initDatabase():
@@ -364,7 +369,6 @@ def initDatabase():
 
     conn.commit()
     conn.close()
-    print("SUCCES: initDatabase")
 
 def accessDatabase(input):
     commands = open(input)
