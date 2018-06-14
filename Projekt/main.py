@@ -29,7 +29,6 @@ def buildDatabase(conn):
     ALTER USER app SUPERUSER
     """
     )
-    #temporary solution
 
     cur = conn.cursor()
 
@@ -347,7 +346,7 @@ def updateEmployee(conn, admin, passwd, emp, newdata):
     return
 
 def initDatabase():
-    commands = open('init.in')
+    commands = open('test1.init.json')
     openLine = json.loads(commands.readline())
     openLine = openLine['open']
     conn = openDatabase(openLine['login'], openLine['password'], openLine['database'])
