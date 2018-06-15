@@ -1,4 +1,0 @@
-{ "open": { "database": "corp", "login": "app", "password": "qwerty"}}
-{ "new": { "admin": 1, "passwd": "qwerty", "data":"dane wicewiceprezesa", "newpasswd":"qwerty", "emp1":1, "emp":2 } }
-{ "new": { "admin": 1, "passwd": "qwerty", "data":"dane wicewicewiceprezesa", "newpasswd":"qwerty", "emp1":2, "emp":3 } }
-{ "new": { "admin": 3, "passwd": "qwerty", "data":"dane emp4", "newpasswd":"qwerty", "emp1":2, "emp":4 } }

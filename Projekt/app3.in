@@ -1,9 +1,0 @@
-{ "open": { "database": "corp", "login": "app", "password": "qwerty"}}
-{ "child": { "admin": 4, "passwd": "qwerty", "emp":1 } }
-{ "parent": { "admin": 0, "passwd": "qwerty", "emp":5 } }
-{ "ancestors": { "admin": 0, "passwd": "qwerty", "emp":5 } }
-{ "descendants": { "admin": 0, "passwd": "qwerty", "emp":1 } }
-{ "ancestor": { "admin": 0, "passwd": "qwerty", "emp1":5, "emp2": 1} }
-{ "read": { "admin": 1, "passwd": "qwerty", "emp":5 } }
-{ "update": { "admin": 1, "passwd": "qwerty", "emp":5, "newdata": "nowe dane emp5" } }
-{ "read": { "admin": 1, "passwd": "qwerty", "emp":5 } }
